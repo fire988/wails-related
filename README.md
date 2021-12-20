@@ -114,6 +114,11 @@ func amAdmin() bool {
 
   >>编译好的Wails应用程序可以在启动时检测WebView2是否安装，如果未安装，在用户同意的情况下可自动完成下载安装（非管理员用户安装不会成功，但程序可正常启动运行，下次启动还会提示安装），并正常启动程序。
 
-## 2. TODO
+## 2. 手动编译dev版本
 
-## 3. TODO
+go build -tags dev -gcflags "all=-N -l"
+
+## 3. 前后端双向通讯
+
+前端调用后端：window.runtime.EventsEmit("keydown","123")
+后端调用前端：runtime.EventsEmit(b.ctx, "event", "message")
