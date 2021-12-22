@@ -120,5 +120,4 @@ go build -tags dev -gcflags "all=-N -l"
 
 ## 3. 前后端双向通讯
 
-前端调用后端：window.runtime.EventsEmit("keydown","123")
-后端调用前端：runtime.EventsEmit(b.ctx, "event", "message")
+  演示项目：https://github.com/fire988/wails-demo-01.git
