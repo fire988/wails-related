@@ -125,3 +125,10 @@ go build -tags dev -gcflags "all=-N -l"
 ## 4. 如何启动浏览器调试
 
    命令：wails dev -browser
+
+## 5. 如何调试后端golang代码
+
+    初始化项目的时候，命令行要加上 -ide 选项，如下：
+    wails init -ide vscode -n testproj
+    然后，就可以在vscode里愉快第调试了。
+    注意：ide目前只能指定为vscode，GoLand还不支持。
