@@ -78,7 +78,7 @@ import (
 func main() {
   // if not elevated, relaunch by shellexecute with runas verb set
   if !amAdmin() {
-  runMeElevated()
+    runMeElevated()
   }
   time.Sleep(10 * time.Second)
 
@@ -153,68 +153,68 @@ func amAdmin() bool {
 package main
 
 import (
-"fmt"
-"os"
-"runtime"
-"strings"
-"syscall"
+  "fmt"
+  "os"
+  "runtime"
+  "strings"
+  "syscall"
 
-"golang.org/x/sys/windows"
-"golang.org/x/sys/windows/registry"
-ffmt "gopkg.in/ffmt.v1"
+  "golang.org/x/sys/windows"
+  "golang.org/x/sys/windows/registry"
+  ffmt "gopkg.in/ffmt.v1"
 )
 
 // Info contains all the information about an installation of the webview2 runtime.
 type Info struct {
-Location        string
-Name            string
-Version         string
-SilentUninstall string
+  Location        string
+  Name            string
+  Version         string
+  SilentUninstall string
 }
 
 func getKeyValue(k registry.Key, name string) string {
-result, _, _ := k.GetStringValue(name)
-return result
+  result, _, _ := k.GetStringValue(name)
+  return result
 }
 
 // GetInstalledVersion returns the installed version of the webview2 runtime.
 // If there is no version installed, a blank string is returned.
 func GetInstalledVersion() (*Info, bool) {
-bInCurrUser := false
-var regkey1 = `SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
-var regkey2 = `SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
+  bInCurrUser := false
+  var regkey1 = `SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
+  var regkey2 = `SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
+  
+  k, err := registry.OpenKey(registry.CURRENT_USER, regkey2, registry.QUERY_VALUE)
+  if err != nil {
+    if runtime.GOARCH == "386" {
+      k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey2, registry.QUERY_VALUE)
+    } else {
+      k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey1, registry.QUERY_VALUE)
+    }
+    if err != nil {
+      return nil, bInCurrUser
+    }
+  } else {
+    bInCurrUser = true
+  }
 
-k, err := registry.OpenKey(registry.CURRENT_USER, regkey2, registry.QUERY_VALUE)
-if err != nil {
-if runtime.GOARCH == "386" {
-k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey2, registry.QUERY_VALUE)
-} else {
-k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey1, registry.QUERY_VALUE)
-}
-if err != nil {
-return nil, bInCurrUser
-}
-} else {
-bInCurrUser = true
-}
+  info := &Info{}
+  info.Location = getKeyValue(k, "location")
+  info.Name = getKeyValue(k, "name")
+  info.Version = getKeyValue(k, "pv")
+  info.SilentUninstall = getKeyValue(k, "SilentUninstall")
 
-info := &Info{}
-info.Location = getKeyValue(k, "location")
-info.Name = getKeyValue(k, "name")
-info.Version = getKeyValue(k, "pv")
-info.SilentUninstall = getKeyValue(k, "SilentUninstall")
-
-return info, bInCurrUser
+  return info, bInCurrUser
 }
 
 func isAdmin() bool {
-_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
-if err != nil {
-fmt.Println("not admin")
-return false
-}
-fmt.Println("admin yes!")
-return true
+  _, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+  if err != nil {
+    fmt.Println("not admin")
+    return false
+  }
+  fmt.Println("admin yes!")
+  return true
 }
 
 func runMeElevated() {
