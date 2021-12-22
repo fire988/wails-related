@@ -121,3 +121,7 @@ go build -tags dev -gcflags "all=-N -l"
 ## 3. 前后端双向通讯
 
   演示项目：https://github.com/fire988/wails-demo-01.git
+
+## 4. 如何启动浏览器调试
+
+   命令：wails dev -browser
