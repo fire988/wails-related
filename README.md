@@ -138,3 +138,140 @@ func amAdmin() bool {
 ## 6. 初始化一个React项目
 
     wails init -n "your-project-name" -t https://github.com/kamilikamil/wails-react-template
+
+## 7. Win7下不能运行的问题
+
+    wails项目之所以在win7下不能运行，主要是有两个原因造成：
+    1、wails项目编译的程序在启动的时候会检查WebView2的安装情况，如果未安装，会提示并可进行安装，但其检查的注册表项在win7下是不存在的。
+    2、wails项目程序会使用微软的Shcore库，这个库在win7下是没有的，因此无法运行，但其只调用了这个库的一个API，因此，如果写个同名的shcore.dll文件，导出这个函数，就可以解决运行的问题了。
+
+    FakeShcore项目地址：https://github.com/fire988/FakeShcore.git
+
+    针对第一个原因，如果已经安装了WebView2，需要修正注册表项（实际上是增加），代码：
+
+``` go
+package main
+
+import (
+"fmt"
+"os"
+"runtime"
+"strings"
+"syscall"
+
+"golang.org/x/sys/windows"
+"golang.org/x/sys/windows/registry"
+ffmt "gopkg.in/ffmt.v1"
+)
+
+// Info contains all the information about an installation of the webview2 runtime.
+type Info struct {
+Location        string
+Name            string
+Version         string
+SilentUninstall string
+}
+
+func getKeyValue(k registry.Key, name string) string {
+result, _, _ := k.GetStringValue(name)
+return result
+}
+
+// GetInstalledVersion returns the installed version of the webview2 runtime.
+// If there is no version installed, a blank string is returned.
+func GetInstalledVersion() (*Info, bool) {
+bInCurrUser := false
+var regkey1 = `SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
+var regkey2 = `SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`
+
+k, err := registry.OpenKey(registry.CURRENT_USER, regkey2, registry.QUERY_VALUE)
+if err != nil {
+if runtime.GOARCH == "386" {
+k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey2, registry.QUERY_VALUE)
+} else {
+k, err = registry.OpenKey(registry.LOCAL_MACHINE, regkey1, registry.QUERY_VALUE)
+}
+if err != nil {
+return nil, bInCurrUser
+}
+} else {
+bInCurrUser = true
+}
+
+info := &Info{}
+info.Location = getKeyValue(k, "location")
+info.Name = getKeyValue(k, "name")
+info.Version = getKeyValue(k, "pv")
+info.SilentUninstall = getKeyValue(k, "SilentUninstall")
+
+return info, bInCurrUser
+}
+
+func isAdmin() bool {
+_, err := os.Open("\\\\.\\PHYSICALDRIVE0")
+if err != nil {
+fmt.Println("not admin")
+return false
+}
+fmt.Println("admin yes!")
+return true
+}
+
+func runMeElevated() {
+  verb := "runas"
+  exe, _ := os.Executable()
+  cwd, _ := os.Getwd()
+  args := strings.Join(os.Args[1:], " ")
+
+  verbPtr, _ := syscall.UTF16PtrFromString(verb)
+  exePtr, _ := syscall.UTF16PtrFromString(exe)
+  cwdPtr, _ := syscall.UTF16PtrFromString(cwd)
+  argPtr, _ := syscall.UTF16PtrFromString(args)
+
+  var showCmd int32 = 1 //SW_NORMAL
+
+  err := windows.ShellExecute(0, verbPtr, exePtr, argPtr, cwdPtr, showCmd)
+  if err != nil {
+    fmt.Println(err)
+  }
+}
+
+func main() {
+  if !isAdmin() {
+    runMeElevated()
+  }
+
+  info, bInCurrUser := GetInstalledVersion()
+  if info == nil {
+  fmt.Println("error getting WebView2 version info.")
+    return
+  }
+
+  ffmt.Puts(info)
+
+  if bInCurrUser {
+    key, exists, _ := registry.CreateKey(registry.LOCAL_MACHINE, `SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}`, registry.ALL_ACCESS)
+    defer key.Close()
+
+    // 判断是否已经存在了
+    if exists {
+      println(`键已存在`)
+    } else {
+      println(`新建注册表键`)
+    }
+
+    key.SetStringValue(`location`, info.Location)
+    key.SetStringValue(`name`, info.Name)
+    key.SetStringValue(`pv`, info.Version)
+    key.SetStringValue(`SilentUninstall`, info.SilentUninstall)
+    fmt.Println("创建完成")
+  }   else {
+    fmt.Println("不需要创建")
+  }
+}
+
+```
+
+
+
+
