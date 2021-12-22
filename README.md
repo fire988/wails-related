@@ -1,4 +1,6 @@
-# wails-related
+# wails-related (本文档仅涉及Windows系统，wails 2.0)
+  
+     安装命令：go install github.com/wailsapp/wails/v2/cmd/wails@latest
 
 ## 1. 关于webview2
 
@@ -116,15 +118,15 @@ func amAdmin() bool {
 
 ## 2. 手动编译dev版本
 
-go build -tags dev -gcflags "all=-N -l"
+     go build -tags dev -gcflags "all=-N -l"
 
 ## 3. 前后端双向通讯
 
-  演示项目：https://github.com/fire988/wails-demo-01.git
+     演示项目：https://github.com/fire988/wails-demo-01.git
 
 ## 4. 如何启动浏览器调试
 
-   命令：wails dev -browser
+     命令：wails dev -browser
 
 ## 5. 如何调试后端golang代码
 
@@ -132,3 +134,7 @@ go build -tags dev -gcflags "all=-N -l"
     wails init -ide vscode -n testproj
     然后，就可以在vscode里愉快第调试了。
     注意：ide目前只能指定为vscode，GoLand还不支持。
+
+## 6. 初始化一个React项目
+
+    wails init -n "your-project-name" -t https://github.com/kamilikamil/wails-react-template
