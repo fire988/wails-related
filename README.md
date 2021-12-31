@@ -119,13 +119,14 @@ func amAdmin() bool {
 ## 2. 手动编译dev版本
 
      go build -tags dev -gcflags "all=-N -l"
+     上述命令在项目根目录下生成一个changeme.exe，可运行，并且有控制台输出，鼠标右键有调试菜单，可以呼出DevTools。
 
 ## 3. 前后端双向通讯
 
      演示项目：https://github.com/fire988/wails-demo-01.git
 
-## 4. 如何启动浏览器调试
-
+## 4. 如何启动浏览器调试（不建议，建议使用手动编译dev版本）
+     
      命令：wails dev -browser
 
 ## 5. 如何调试后端golang代码
@@ -245,7 +246,7 @@ func main() {
 
   info, bInCurrUser := GetInstalledVersion()
   if info == nil {
-  fmt.Println("error getting WebView2 version info.")
+    fmt.Println("error getting WebView2 version info.")
     return
   }
 
@@ -273,6 +274,63 @@ func main() {
 }
 
 ```
+
+## 8. 窗口不能用鼠标调整大小的问题
+
+    勉强的解决方案：不要使用窗口标题，代码如下：
+
+``` go
+func main() {
+	// Create an instance of the app structure
+	app := NewApp()
+	// Create application with options
+	err := wails.Run(&options.App{
+		Title:             "wails-t1",
+		Width:             720,
+		Height:            570,
+		MinWidth:          720,
+		MinHeight:         570,
+		MaxWidth:          1920,
+		MaxHeight:         1080,
+		DisableResize:     false,
+		Fullscreen:        false,
+		Frameless:         true,
+		StartHidden:       false,
+		HideWindowOnClose: false,
+		RGBA:              &options.RGBA{R: 33, G: 37, B: 43, A: 255},
+		Assets:            assets,
+		LogLevel:          logger.DEBUG,
+		OnStartup:         app.startup,
+		OnDomReady:        app.domReady,
+		OnShutdown:        app.shutdown,
+		Bind: []interface{}{
+			app,
+		},
+		// Windows platform specific options
+		Windows: &windows.Options{
+			WebviewIsTransparent:  false,
+			WindowIsTranslucent:   false,
+			DisableWindowIcon:     false,
+			EnableFramelessBorder: true,
+		},
+		Mac: &mac.Options{
+			TitleBar:             mac.TitleBarHiddenInset(),
+			WebviewIsTransparent: true,
+			WindowIsTranslucent:  true,
+			About: &mac.AboutInfo{
+				Title:   "Vanilla Template",
+				Message: "Part of the Wails projects",
+				Icon:    icon,
+			},
+		},
+	})
+
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 
 
 
