@@ -132,11 +132,13 @@ func amAdmin() bool {
 
     初始化项目的时候，命令行要加上 -ide 选项，如下：
     wails init -ide vscode -n testproj
-    然后，就可以在vscode里愉快第调试了。
+    然后，就可以在vscode里愉快地调试了。
     注意：ide目前只能指定为vscode，GoLand还不支持。
 
 ## 6. 初始化一个React项目
 
+    两个模板可选（推荐第一个）：
+    wails init -n "your-project-name" -t https://github.com/flin7/wails-react-template
     wails init -n "your-project-name" -t https://github.com/kamilikamil/wails-react-template
 
 ## 7. Win7下不能运行的问题
